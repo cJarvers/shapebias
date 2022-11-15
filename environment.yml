@@ -1,0 +1,7 @@
+name: shapebias
+channels:
+  - defaults
+dependencies:
+  - torchvision
+  - pytorch
+  - pytorch-cuda=11.7
