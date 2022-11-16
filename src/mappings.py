@@ -1,4 +1,5 @@
 # Defines mapping / extraction functions to be used with SilhouetteDataset class.
+import numpy as np
 
 ##############################
 # Helper functions / objects #
@@ -44,7 +45,7 @@ def get_silhouette_simple(img, seg, ann):
     "Extract silhouette (same dimension as image) and label."
     label = ann['annotation']['object'][0]['name']
     target = label2int[label]
-    silhouette = (seg == target)
+    silhouette = np.expand_dims((seg != target), 2).repeat(3, axis=2)
     return silhouette, target
 
 
