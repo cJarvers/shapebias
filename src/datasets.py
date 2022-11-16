@@ -50,11 +50,13 @@ class SilhouetteDataset(Dataset):
             "occluded" - images of occluded objects are removed
             "truncated" - images of truncated objects are removed
         mapping: function that maps image, segmentation masks, and annotation onto desired output.
+        transform: torchvision transform to be applied to image / silhouette (after `mapping`)
     """
     def __init__(self, root="../data", year="2012", image_set="train", download=False,
-            filters=["single"], mapping=get_silhouette_simple):
+            filters=["single"], mapping=get_silhouette_simple, transform=None):
         super().__init__()
         self.mapping = mapping
+        self.transform = transform
         self.segmentation = datasets.VOCSegmentation(root=root, year=year, image_set=image_set, download=download)
         self.detection = datasets.VOCDetection(root=root, year=year, image_set=image_set, download=download)
         self.sinds, self.dinds = get_common_images(self.segmentation, self.detection)
@@ -62,7 +64,10 @@ class SilhouetteDataset(Dataset):
 
     def __getitem__(self, index):
         img, seg, ann = self._get_raw(index)
-        return self.mapping(img, seg, ann)
+        x, y = self.mapping(img, seg, ann)
+        if self.transform:
+            x = self.transform(x)
+        return x, y
 
     def __len__(self):
         return len(self.sinds)
