@@ -8,23 +8,31 @@ import argparse
 import sys
 sys.path.insert(0, "../src")
 from datasets import SilhouetteDataset
-from mappings import int2label, get_image, get_silhouette_simple
+from mappings import int2label, get_image, get_silhouette_simple, get_image_bbox, get_silhouette_bbox
 
 # Parse command-line
 parser = argparse.ArgumentParser(description="Demo for running net on silhouette images.")
 parser.add_argument("-b", "--batchsize", type=int, default=4)
 parser.add_argument("--countclasses", action="store_true", help="Whether to print number of images per class.")
+parser.add_argument("--crop", action="store_true", help="Whether to restrict images / silhouettes to scaled bounding box.")
 args = parser.parse_args()
 
 # Set up datasets
+if args.crop:
+    img_mapping = get_image_bbox
+    sil_mapping = get_silhouette_bbox
+else:
+    img_mapping = get_image
+    sil_mapping = get_silhouette_simple
+
 images = SilhouetteDataset("../data", image_set="val",
     filters=["single", "occluded", "truncated"],
-    mapping=get_image,
+    mapping=img_mapping,
     transform=Compose([ToTensor(), Resize((224, 224))])
 )
 silhouettes = SilhouetteDataset("../data", image_set="val",
     filters=["single", "occluded", "truncated"],
-    mapping=get_silhouette_simple,
+    mapping=sil_mapping,
     transform=Compose([
         ToTensor(),
         Resize((224, 224), interpolation=InterpolationMode.NEAREST), # nearest neighbor interpolation conserves narrow structures better
