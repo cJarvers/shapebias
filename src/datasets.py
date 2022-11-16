@@ -1,7 +1,8 @@
 # Defines dataset wrappers for images, silhouettes and related stimuli
-import torch
+import numpy as np
 from torch.utils.data import Dataset
 from torchvision import datasets
+from mappings import get_silhouette_simple
 
 def get_common_images(segmentation, detection):
     """
@@ -48,17 +49,20 @@ class SilhouetteDataset(Dataset):
             "single" - only images with single objects are used
             "occluded" - images of occluded objects are removed
             "truncated" - images of truncated objects are removed
+        mapping: function that maps image, segmentation masks, and annotation onto desired output.
     """
     def __init__(self, root="../data", year="2012", image_set="train", download=False,
-            filters=["single"]):
+            filters=["single"], mapping=get_silhouette_simple):
         super().__init__()
+        self.mapping = mapping
         self.segmentation = datasets.VOCSegmentation(root=root, year=year, image_set=image_set, download=download)
         self.detection = datasets.VOCDetection(root=root, year=year, image_set=image_set, download=download)
         self.sinds, self.dinds = get_common_images(self.segmentation, self.detection)
         self.sinds, self.dinds = self._filter_inds(filters)
 
     def __getitem__(self, index):
-        return self._get_raw(index)
+        img, seg, ann = self._get_raw(index)
+        return self.mapping(img, seg, ann)
 
     def __len__(self):
         return len(self.sinds)
@@ -67,7 +71,7 @@ class SilhouetteDataset(Dataset):
         img = self.segmentation[self.sinds[index]][0]
         seg = self.segmentation[self.sinds[index]][1]
         annotation = self.detection[self.dinds[index]][1]
-        return img, seg, annotation
+        return np.array(img), np.array(seg), annotation
 
     def _filter_inds(self, filters):
         new_sinds = []
