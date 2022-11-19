@@ -53,6 +53,10 @@ def getbbox(obj, size, factor=1.0):
     ymax = min(ymax, int(size['height']))
     return xmin, xmax, ymin, ymax
 
+def getmask(seg, target):
+    "Return boolean mask of object pixels"
+    return np.expand_dims((seg == target), 2).repeat(3, axis=2)
+
 
 ########################
 # Extraction functions #
@@ -65,13 +69,6 @@ def get_image(img, seg, ann):
     target = gettarget(obj)
     return img, target
 
-def get_silhouette_simple(img, seg, ann):
-    "Extract silhouette (same dimension as image) and label."
-    obj = getobject(ann)
-    target = gettarget(obj)
-    silhouette = np.expand_dims((seg != target), 2).repeat(3, axis=2)
-    return silhouette, target
-
 def get_image_bbox(img, seg, ann, factor=1.2):
     "Extract image restricted to bounding box of object, enlarged by `factor`."
     obj = getobject(ann)
@@ -81,6 +78,51 @@ def get_image_bbox(img, seg, ann, factor=1.2):
     image = img[ymin:ymax, xmin:xmax, :]
     return image, target
 
+def get_image_bg(img, seg, ann):
+    "Extract image, but mask out the object."
+    obj = getobject(ann)
+    target = gettarget(obj)
+    mask = getmask(seg, target)
+    background = img * (1 - mask.astype(np.uint8))
+    return background, target
+
+def get_image_bg_bbox(img, seg, ann, factor=1.2):
+    "Extract image background, restricted to boundig box."
+    obj = getobject(ann)
+    target = gettarget(obj)
+    xmin, xmax, ymin, ymax = getbbox(obj, ann['annotation']['size'], factor)
+    image = img[ymin:ymax, xmin:xmax, :]
+    mask = getmask(seg[ymin:ymax, xmin:xmax], target)
+    background = image * (1 - mask.astype(np.uint8))
+    return background, target
+
+def get_image_fg(img, seg, ann):
+    "Extract image, but mask out the background."
+    obj = getobject(ann)
+    target = gettarget(obj)
+    mask = getmask(seg, target).astype(np.uint8)
+    foreground = img * mask
+    white_bg = (1 - mask) * 255
+    return foreground + white_bg, target
+
+def get_image_fg_bbox(img, seg, ann, factor=1.2):
+    "Extract image, mask out background, and restrict to bounding box."
+    obj = getobject(ann)
+    target = gettarget(obj)
+    xmin, xmax, ymin, ymax = getbbox(obj, ann['annotation']['size'], factor)
+    image = img[ymin:ymax, xmin:xmax, :]
+    mask = getmask(seg[ymin:ymax, xmin:xmax], target).astype(np.uint8)
+    foreground = image * mask
+    white_bg = (1 - mask) * 255
+    return foreground + white_bg, target
+
+def get_silhouette_simple(img, seg, ann):
+    "Extract silhouette (same dimension as image) and label."
+    obj = getobject(ann)
+    target = gettarget(obj)
+    mask = getmask(seg, target)
+    silhouette = 1.0 - mask
+    return silhouette, target
 
 def get_silhouette_bbox(img, seg, ann, factor=1.2):
     "Extract silhouette restricted to bounding box of object, enlarged by `factor`."
@@ -88,6 +130,11 @@ def get_silhouette_bbox(img, seg, ann, factor=1.2):
     target = gettarget(obj)
     # get bounding box
     xmin, xmax, ymin, ymax = getbbox(obj, ann['annotation']['size'], factor)
-    silhouette = (seg != target)[ymin:ymax, xmin:xmax]
-    silhouette = np.expand_dims(silhouette, 2).repeat(3, axis=2)
+    mask = getmask(seg[ymin:ymax, xmin:xmax], target)
+    silhouette = 1.0 - mask
     return silhouette, target
+
+def preprocess(img, seg, ann, bbox=True, factor=1.2, mask_bg=False,
+        mask_fg=False):
+    """Preprocess images."""
+    pass
