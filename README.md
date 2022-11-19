@@ -18,17 +18,5 @@ Next, install [`rsatoolbox`](https://rsatoolbox.readthedocs.io/en/latest/index.h
 pip install rsatoolbox
 ```
 
-Then install the [model-vs-human toolbox](https://github.com/bethgelab/model-vs-human). On Linux:
-
-```
-git clone https://github.com/bethgelab/model-vs-human.git
-export MODELVSHUMANDIR=$(pwd)/model-vs-human/
-cd model-vs-human
-pip install -e .
-```
-
-(Note: if the `pip install` step fails, you may need to adjust some of the version numbers in
-the file `model-vs-human/setup.cfg`. Some versions are outdated and not accessible anymore.)
-
 ## Usage
 
