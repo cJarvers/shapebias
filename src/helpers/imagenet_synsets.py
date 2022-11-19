@@ -1,4 +1,5 @@
 from nltk.corpus import wordnet as wn
+import numpy as np
 import os
 current_file = os.path.dirname(__file__)
 
@@ -43,6 +44,7 @@ synsets = [wn.synset_from_pos_and_offset('n', int(c[1:])) for c in categories]
 
 voc2imgnet = {c: [] for c in voclabels.keys()}
 imgnet2voc = {}
+imagenet2voc = np.zeros(1000, dtype=np.int64)
 for i, synset in enumerate(synsets):
     for vocclass, vocsynset in voc_synsets.items():
         #for hyper in syn.closure(lambda s: s.hypernyms()):
@@ -50,3 +52,4 @@ for i, synset in enumerate(synsets):
         if vocsynset in synset.lowest_common_hypernyms(vocsynset):
             voc2imgnet[vocclass].append(i)
             imgnet2voc[i] = vocclass
+            imagenet2voc[i] = voclabels[vocclass]
