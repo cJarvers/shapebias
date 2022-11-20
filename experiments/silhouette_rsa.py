@@ -1,5 +1,7 @@
 from matplotlib import pyplot as plt
 import torch
+torch.set_grad_enabled(False)
+from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor, Resize, Compose, ConvertImageDtype
 from torchvision.transforms import InterpolationMode
 import argparse
@@ -8,7 +10,8 @@ import argparse
 import sys
 sys.path.insert(0, "../src")
 from datasets import SilhouetteDataset
-from mappings import int2label, get_image, get_silhouette_simple, get_image_bbox, get_silhouette_bbox
+from mappings import get_silhouette_simple, get_silhouette_bbox
+from loadnetworks import load_resnet50
 
 # Parse command-line
 parser = argparse.ArgumentParser(description="Demo for running RSA on network layers with silhouette images.")
@@ -33,14 +36,7 @@ silhouettes = SilhouetteDataset("../data", image_set="val",
     ])
 )
 
-import torch
-torch.set_grad_enabled(False)
-from torch.utils.data import DataLoader
-from torchvision.models import resnet50, ResNet50_Weights
-from torchvision.models.feature_extraction import create_feature_extractor
-weights = ResNet50_Weights.IMAGENET1K_V2
-net = resnet50(weights=weights)
-subnet = create_feature_extractor(net, return_nodes={layer: layer for layer in args.layers})
+net = load_resnet50(args.layers)
 
 b = args.batchsize
 loader = DataLoader(silhouettes, batch_size=b, shuffle=False)
@@ -51,7 +47,7 @@ classes = []
 flat = torch.nn.Flatten()
 for img, lbl in loader:
     classes.append(lbl)
-    acts = subnet(img)
+    acts = net(img)
     activations["image"].append(flat(img))
     activations["label"].append(torch.nn.functional.one_hot(lbl, num_classes=21))
     for layer in args.layers:

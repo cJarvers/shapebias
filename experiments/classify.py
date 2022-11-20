@@ -11,7 +11,7 @@ from torchvision.transforms import ToTensor, Resize, Compose
 import sys
 sys.path.insert(0, "../src")
 from datasets import SilhouetteDataset
-from mappings import get_image, get_silhouette_simple, get_image_bbox, get_silhouette_bbox
+from mappings import get_image_bbox
 from helpers.imagenet_synsets import imagenet2voc
 
 # load data
