@@ -1,5 +1,7 @@
 from matplotlib import pyplot as plt
 import torch
+torch.set_grad_enabled(False)
+from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor, Resize, Compose, ConvertImageDtype
 from torchvision.transforms import InterpolationMode
 import argparse
@@ -54,7 +56,6 @@ if args.countclasses:
     for c in class_counts:
         print(c.ljust(20, " "), class_counts[c])
 
-from torch.utils.data import DataLoader
 from torchvision.models import resnet50, ResNet50_Weights
 weights = ResNet50_Weights.IMAGENET1K_V2
 net = resnet50(weights=weights)
