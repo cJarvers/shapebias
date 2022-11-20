@@ -21,15 +21,18 @@ images = SilhouetteDataset("../data", image_set="trainval",
 )
 foregrounds = SilhouetteDataset("../data", image_set="trainval",
     filters=["single", "occluded", "truncated"],
-    mapping=get_image_fg_bbox
+    mapping=get_image_fg_bbox,
+    sinds=images.sinds, dinds=images.dinds
 )
 backgrounds = SilhouetteDataset("../data", image_set="trainval",
     filters=["single", "occluded", "truncated"],
-    mapping=get_image_bg_bbox
+    mapping=get_image_bg_bbox,
+    sinds=images.sinds, dinds=images.dinds
 )
 silhouettes = SilhouetteDataset("../data", image_set="trainval",
     filters=["single", "occluded", "truncated"],
-    mapping=get_silhouette_bbox
+    mapping=get_silhouette_bbox,
+    sinds=images.sinds, dinds=images.dinds
 )
 imloader = DataLoader(images, batch_size=32)
 fgloader = DataLoader(foregrounds, batch_size=32)
@@ -51,4 +54,4 @@ for (img, lbl), (fg, _), (bg, _), (sil, _) in zip(imloader, fgloader, bgloader, 
 print("Total number of images: ", total)
 print("Correct responses / accuracies:")
 for k, c in correct.items():
-    print(k, "\t", c, "correct", f"\t({c / total * 100}%)")
+    print(k, "\t", c, "correct", f"\t({c / total * 100:1.3f}%)")

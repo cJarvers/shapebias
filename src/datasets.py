@@ -56,6 +56,7 @@ class SilhouetteDataset(Dataset):
         transform: torchvision transform to be applied to image / silhouette (after `mapping`)
     """
     def __init__(self, root="../data", year="2012", image_set="train", download=False,
+            sinds=None, dinds=None,
             filters=["single"], mapping=get_silhouette_simple,
             transform=Compose([ToTensor(),
                 Resize((224, 224), interpolation=InterpolationMode.NEAREST), # nearest neighbor interpolation conserves narrow structures better
@@ -66,8 +67,12 @@ class SilhouetteDataset(Dataset):
         self.transform = transform
         self.segmentation = datasets.VOCSegmentation(root=root, year=year, image_set=image_set, download=download)
         self.detection = datasets.VOCDetection(root=root, year=year, image_set=image_set, download=download)
-        self.sinds, self.dinds = get_common_images(self.segmentation, self.detection)
-        self.sinds, self.dinds = self._filter_inds(filters)
+        if (sinds is None) or (dinds is None):
+            self.sinds, self.dinds = get_common_images(self.segmentation, self.detection)
+            self.sinds, self.dinds = self._filter_inds(filters)
+        else:
+            self.sinds = sinds
+            self.dinds = dinds
 
     def __getitem__(self, index):
         img, seg, ann = self._get_raw(index)
@@ -116,11 +121,3 @@ class SilhouetteDataset(Dataset):
                 else:
                     class_counts[name] = 1
         return class_counts
-
-# First common image is segmentation[311] and detection[1]
-#
-# example of how to get bounding box
-#xmin = int(detection[1][1]['annotation']['object'][0]['bndbox']['xmin'])
-#xmax = int(detection[1][1]['annotation']['object'][0]['bndbox']['xmax'])
-#ymin = int(detection[1][1]['annotation']['object'][0]['bndbox']['ymin'])
-#ymax = int(detection[1][1]['annotation']['object'][0]['bndbox']['ymax'])
