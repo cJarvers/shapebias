@@ -10,27 +10,34 @@ with open(current_file + "/pascalVOC_labels.txt", "r") as file:
         for (index, label) in map(lambda line: line.strip("\n").split(" "), file)
     }
 voc_synsets = {}
-# For most labels, the first noun synset is correct, BUT:
-# - "diningtable" has to be replaced by "dining_table" 
-# - "pottedplant" has to be replaced by "pot_plant" or "flowerpot" (latter is used in ImageNet)
-# - "tvmonitor" does not exist. Closest equivalents are:
-#     - "monitor" (4th synset)
-#     - "monitor" (5th synset) -> used in ImageNet
-#     - "television" (2nd synset) -> used in ImageNet
-#   The lowest common hypernym of these is "instrumentality.n.03"
-# - we replace "cow" with "bovid" to be more generic (e.g., to catch "buffalo")
-# - 
 for label in voclabels.keys():
+    # For most labels, the first noun synset is correct, BUT:
     if label == "diningtable":
+        # "diningtable" has to be replaced by "dining_table" 
         synset = wn.synsets("dining_table", pos="n")[0]
     elif label == "pottedplant":
+        # "pottedplant" has to be replaced by "pot_plant"
+        # or by "flowerpot" (latter is used in ImageNet)
         synset = wn.synsets("flowerpot", pos="n")[0]
     elif label == "tvmonitor":
+        # "tvmonitor" does not exist. Closest equivalents are:
+        # - "monitor" (4th synset)
+        # - "monitor" (5th synset) -> used in ImageNet
+        # - "television" (2nd synset) -> used in ImageNet
+        # The lowest common hypernym of these is "instrumentality.n.03"
         synset = wn.synsets("television", pos="n")[1]
     elif label == "cow":
+        # we replace "cow" with "bovid" to be more generic (e.g., to catch "buffalo")
         synset = wn.synsets("bovid", pos="n")[0]
     elif label == "aeroplane":
+        # several subtypes of plane (e.g., "warplane") are not captured
+        # by synset "plane", but by its hypernym
         synset = wn.synsets("heavier-than-air_craft", pos="n")[0]
+    elif label == "train":
+        # ImageNet classes contain trains and locomotives;
+        # They don't have a good common hypernym.
+        # But "locomotive" seems to describe images in PascalVOC data better
+        synset = wn.synsets("locomotive", pos="n")[0]
     else:
         synset = wn.synsets(label, pos="n")[0]
     voc_synsets[label] = synset
