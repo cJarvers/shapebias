@@ -1,7 +1,10 @@
 # Defines dataset wrappers for images, silhouettes and related stimuli
 import numpy as np
+import torch
 from torch.utils.data import Dataset
 from torchvision import datasets
+from torchvision.transforms import ToTensor, Resize, Compose, ConvertImageDtype
+from torchvision.transforms import InterpolationMode
 from mappings import get_silhouette_simple
 
 def get_common_images(segmentation, detection):
@@ -53,7 +56,11 @@ class SilhouetteDataset(Dataset):
         transform: torchvision transform to be applied to image / silhouette (after `mapping`)
     """
     def __init__(self, root="../data", year="2012", image_set="train", download=False,
-            filters=["single"], mapping=get_silhouette_simple, transform=None):
+            filters=["single"], mapping=get_silhouette_simple,
+            transform=Compose([ToTensor(),
+                Resize((224, 224), interpolation=InterpolationMode.NEAREST), # nearest neighbor interpolation conserves narrow structures better
+                ConvertImageDtype(torch.float32)
+            ])):
         super().__init__()
         self.mapping = mapping
         self.transform = transform

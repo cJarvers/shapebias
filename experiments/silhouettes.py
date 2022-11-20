@@ -40,17 +40,11 @@ else:
 
 images = SilhouetteDataset("../data", image_set="val",
     filters=["single", "occluded", "truncated"],
-    mapping=img_mapping,
-    transform=Compose([ToTensor(), Resize((224, 224))])
+    mapping=img_mapping
 )
 silhouettes = SilhouetteDataset("../data", image_set="val",
     filters=["single", "occluded", "truncated"],
-    mapping=sil_mapping,
-    transform=Compose([
-        ToTensor(),
-        Resize((224, 224), interpolation=InterpolationMode.NEAREST), # nearest neighbor interpolation conserves narrow structures better
-        ConvertImageDtype(torch.float32)
-    ])
+    mapping=sil_mapping
 )
 
 if args.countclasses:
