@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 from torchvision import datasets
 from torchvision.transforms import ToTensor, Resize, Compose, ConvertImageDtype
 from torchvision.transforms import InterpolationMode
-from mappings import get_silhouette_simple
+import mappings
 
 def get_common_images(segmentation, detection):
     """
@@ -57,7 +57,7 @@ class SilhouetteDataset(Dataset):
     """
     def __init__(self, root="../data", year="2012", image_set="train", download=False,
             sinds=None, dinds=None,
-            filters=["single"], mapping=get_silhouette_simple,
+            filters=["single", "occluded", "truncated"], mapping=mappings.get_silhouette_simple,
             transform=Compose([ToTensor(),
                 Resize((224, 224), interpolation=InterpolationMode.NEAREST), # nearest neighbor interpolation conserves narrow structures better
                 ConvertImageDtype(torch.float32)
@@ -121,3 +121,37 @@ class SilhouetteDataset(Dataset):
                 else:
                     class_counts[name] = 1
         return class_counts
+
+
+############################################
+# Convenience function for loading dataset #
+############################################
+def loaddataset(imgtype, **kwargs):
+    """
+    Loads a silhouette datasets.
+    
+    # Args:
+    - imgtype: selects which images are returned (e.g., normal, masked, silhouettes, ...)
+        Possible values are:
+    - All other arguments are passed on to SilhouetteDataset constructor
+    """
+    if imgtype is None or imgtype == "image":
+        mapping = mappings.get_image
+    elif imgtype == "image_bbox":
+        mapping = mappings.get_image_bbox
+    elif imgtype == "fg":
+        mapping = mappings.get_image_fg
+    elif imgtype == "fg_bbox":
+        mapping = mappings.get_image_fg_bbox
+    elif imgtype == "bg":
+        mapping = mappings.get_image_bg
+    elif imgtype == "bg_bbox":
+        mapping = mappings.get_image_bg_bbox
+    elif imgtype == "silhouette" or imgtype == "silhouette_simple":
+        mapping = mappings.get_silhouette_simple
+    elif imgtype == "silhouette_bbox":
+        mapping = mappings.get_silhouette_bbox
+    else:
+        raise(ValueError(f"Unknown dataset / image type {imgtype}."))
+    data = SilhouetteDataset(mapping=mapping, **kwargs)
+    return data, data.sinds, data.dinds
