@@ -151,6 +151,8 @@ def loaddataset(imgtype, **kwargs):
         mapping = mappings.get_silhouette_simple
     elif imgtype == "silhouette_bbox":
         mapping = mappings.get_silhouette_bbox
+    elif imgtype == "silhouette_bbox_frankenstein":
+        mapping = mappings.get_silhouette_bbox_frankenstein
     else:
         raise(ValueError(f"Unknown dataset / image type {imgtype}."))
     data = SilhouetteDataset(mapping=mapping, **kwargs)

@@ -57,6 +57,18 @@ def getmask(seg, target):
     "Return boolean mask of object pixels"
     return np.expand_dims((seg == target).astype(np.uint8), 2).repeat(3, axis=2)
 
+def swappatches(img, splits_per_dim):
+    "Split img into (roughly) equal patches and swap them randomly."
+    pass
+
+def frankenstein(img):
+    "Flip lower half of image along vertical axis. Then flip right half of image along horizontal axis."
+    ysize, xsize = img.shape[0], img.shape[1]
+    yhalf, xhalf = xsize // 2, ysize // 2
+    img[yhalf:, :, :] = img[yhalf:, ::-1, :]
+    img[:, xhalf:, :] = img[::-1, xhalf:, :]
+    return img
+
 
 ########################
 # Extraction functions #
@@ -132,6 +144,26 @@ def get_silhouette_bbox(img, seg, ann, factor=1.2):
     xmin, xmax, ymin, ymax = getbbox(obj, ann['annotation']['size'], factor)
     mask = getmask(seg[ymin:ymax, xmin:xmax], target)
     silhouette = (1 - mask) * 255
+    return silhouette, target
+
+def get_silhouette_bbox_patchy(img, seg, ann, factor=1.2, splits_per_dim=2):
+    "Extract silhouette restricted to bounding box, then scramble image patches."
+    obj = getobject(ann)
+    target = gettarget(obj)
+    xmin, xmax, ymin, ymax = getbbox(obj, ann['annotation']['size'], factor)
+    mask = getmask(seg[ymin:ymax, xmin:xmax], target)
+    silhouette = (1 - mask) * 255
+    silhouette = swappatches(img, splits_per_dim) # NOT YET IMPLEMENTED
+    return silhouette, target
+
+def get_silhouette_bbox_frankenstein(img, seg, ann, factor=1.2, splits_per_dim=2):
+    "Extract silhouette restricted to bounding box, then flip image halves."
+    obj = getobject(ann)
+    target = gettarget(obj)
+    xmin, xmax, ymin, ymax = getbbox(obj, ann['annotation']['size'], factor)
+    mask = getmask(seg[ymin:ymax, xmin:xmax], target)
+    silhouette = (1 - mask) * 255
+    silhouette = frankenstein(silhouette)
     return silhouette, target
 
 def preprocess(img, seg, ann, bbox=True, factor=1.2, mask_bg=False,
