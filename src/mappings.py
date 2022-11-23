@@ -1,5 +1,6 @@
 # Defines mapping / extraction functions to be used with SilhouetteDataset class.
 import numpy as np
+from scipy.ndimage import binary_dilation, gaussian_filter
 
 ##############################
 # Helper functions / objects #
@@ -53,9 +54,9 @@ def getbbox(obj, size, factor=1.0):
     ymax = min(ymax, int(size['height']))
     return xmin, xmax, ymin, ymax
 
-def getmask(seg, target):
+def getmask(seg, target, dtype=np.uint8):
     "Return boolean mask of object pixels"
-    return np.expand_dims((seg == target).astype(np.uint8), 2).repeat(3, axis=2)
+    return np.expand_dims((seg == target).astype(dtype), 2).repeat(3, axis=2)
 
 def swappatches(img, splits_per_dim):
     "Split img into (roughly) equal patches and swap them randomly."
@@ -165,6 +166,24 @@ def get_silhouette_bbox_frankenstein(img, seg, ann, factor=1.2, splits_per_dim=2
     silhouette = (1 - mask) * 255
     silhouette = frankenstein(silhouette)
     return silhouette, target
+
+def get_silhouette_bbox_serrated(img, seg, ann, factor=1.2, borderwidth=5, sigma=2.0):
+    "Extract silhouette restricted to bounding box, then corrupt border outline by noise."
+    obj = getobject(ann)
+    target = gettarget(obj)
+    xmin, xmax, ymin, ymax = getbbox(obj, ann['annotation']['size'], factor)
+    mask = getmask(seg[ymin:ymax, xmin:xmax], target)
+    border = getmask(seg[ymin:ymax, xmin:xmax], 255, dtype=np.bool) # object outlines are encoded as 255
+    border = binary_dilation(border, iterations=borderwidth // 2) # extend object outline by dilation
+    noise = np.random.randn(ymax-ymin, xmax - xmin) # generate random noise to corrupt border
+    noise = gaussian_filter(noise, sigma=sigma) > 0.0 # blur noise to have larger coherent bits; convert to binary
+    noise_border = border * np.expand_dims(noise, 2).repeat(3, axis=2)
+    result = (1 - mask) * (1 - border) + noise_border
+    return result.astype(np.uint8) * 255, target
+
+
+
+
 
 def preprocess(img, seg, ann, bbox=True, factor=1.2, mask_bg=False,
         mask_fg=False):
