@@ -60,10 +60,28 @@ for dset in predictions:
     correct = (predictions[dset]["prediction"] == predictions[dset]["label"]).sum()
     accuracies[dset] = {"acc": correct / total}
 
+# Estimate random performance by permutation test
+def permutationtest(ps, lbls, n=1000):
+    results = [np.mean(np.random.permutation(ps) == lbls) for _ in range(n)]
+    return results
+
+for dset in accuracies:
+    accuracies[dset]["perm_accs"] = permutationtest(
+        predictions[dset]["prediction"],
+        predictions[dset]["label"]
+    )
+    accuracies[dset]["p-value"] = 1 - (accuracies[dset]["acc"] > accuracies[dset]["perm_accs"]).mean()
+
 # Print and plot results
 for dset in predictions:
     print(dset.ljust(30), f"{accuracies[dset]['acc']*100:1.3f}%")
 
-plt.bar(range(len(args.datasets)), height=[accuracies[dset]["acc"] for dset in accuracies])
-#plt.boxplot([accuracies[dset]["perm_accs"] for dset in accuracies])
+# plot results
+xs = np.array(range(1, len(args.datasets)+1))
+heights = np.array([accuracies[dset]["acc"] for dset in accuracies])
+pvals = np.array([accuracies[dset]["p-value"] for dset in accuracies])
+plt.bar(xs, height=heights)
+plt.boxplot([accuracies[dset]["perm_accs"] for dset in accuracies])
+plt.scatter(xs[pvals < 0.05], heights[pvals < 0.05] + 0.1, marker="*")
+plt.gca().set_xticks(xs, args.datasets)
 plt.show()
