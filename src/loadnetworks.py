@@ -14,5 +14,6 @@ def load_resnet50(layers, pretrained=True):
     else:
         weights = None
     net = resnet50(weights=weights)
-    subnet = create_feature_extractor(net, return_nodes={layer: layer for layer in layers})
-    return subnet
+    if layers is not None:
+        net = create_feature_extractor(net, return_nodes={layer: layer for layer in layers})
+    return net
