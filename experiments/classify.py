@@ -68,7 +68,8 @@ def permutationtest(ps, lbls, n=1000):
 for dset in accuracies:
     accuracies[dset]["perm_accs"] = permutationtest(
         predictions[dset]["prediction"],
-        predictions[dset]["label"]
+        predictions[dset]["label"],
+        n = 10000
     )
     accuracies[dset]["p-value"] = 1 - (accuracies[dset]["acc"] > accuracies[dset]["perm_accs"]).mean()
 
