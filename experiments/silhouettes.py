@@ -46,12 +46,14 @@ for i, dset in enumerate(loaders):
     #p = net(img)
     for j in range(args.batchsize):
         axs[i, j].imshow(img[j].permute(1,2,0).numpy())
+        axs[i, j].set_xticks([])
+        axs[i, j].set_yticks([])
         # c = p.argmax(dim=1)
         # axs[i,j].title(f"{int2label[lbl[j].item()]}, predicted: {c}")
 # set row labels
 for ax, dset in zip(axs[:, 0], args.datasets):
-    ax.set_ylabel(dset, rotation=0, size="large")
-#fig.tight_layout()
+    ax.set_ylabel(dset, rotation=90, size="large")
+fig.tight_layout()
 plt.show()
 
 
