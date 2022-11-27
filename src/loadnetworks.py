@@ -1,3 +1,4 @@
+import torch
 from torchvision.models import resnet50, ResNet50_Weights, vgg19, VGG19_Weights, vit_b_16, ViT_B_16_Weights
 from torchvision.models.feature_extraction import create_feature_extractor
 
@@ -21,6 +22,8 @@ def loadnetwork(name, layers, pretrained=True):
         net, layers = load_vgg19(layers, pretrained)
     elif name == "vit" or name == "vit_b_16":
         net, layers = load_vit(layers, pretrained)
+    elif name == "shape_resnet":
+        net, layers = load_shaperesnet(layers, pretrained)
     else:
         raise(ValueError(f"Network {name} not implemented."))
     return net, layers
@@ -36,6 +39,20 @@ def load_resnet50(layers, pretrained=True):
             layers = resnet50_layers
         net = create_feature_extractor(net, return_nodes={layer: layer for layer in layers})
     return net, layers
+
+def load_shaperesnet(layers, pretrained=True):
+    net = resnet50(weights=None)
+    if pretrained:
+        url = "https://bitbucket.org/robert_geirhos/texture-vs-shape-pretrained-models/raw/60b770e128fffcbd8562a3ab3546c1a735432d03/resnet50_finetune_60_epochs_lr_decay_after_30_start_resnet50_train_45_epochs_combined_IN_SF-ca06340c.pth.tar"
+        checkpoint = torch.hub.load_state_dict_from_url(url)
+        state_dict = {k[7:]: v for k, v in checkpoint["state_dict"].items()}
+        net.load_state_dict(state_dict)
+    if layers is not None:
+        if layers == ["default"]:
+            layers = resnet50_layers
+        net = create_feature_extractor(net, return_nodes={layer: layer for layer in layers})
+    return net, layers
+
 
 def load_vgg19(layers, pretrained=True):
     if pretrained:
