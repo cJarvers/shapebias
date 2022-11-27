@@ -35,16 +35,20 @@ net = loadnetwork(args.network, layers=None)
 predictions = {}
 for dset, loader in loaders.items():
     predictions[dset] = {
+        "imagenet_class": [],
         "prediction": [],
         "label": []
     }
     for img, lbl in loader:
         out = net(img)
-        pred = imagenet2voc[out.argmax(dim=1).numpy()]
+        imgnet_class = out.argmax(dim=1).numpy()
+        predictions[dset]["imagenet_class"].append(imgnet_class)
+        pred = imagenet2voc[imgnet_class]
         predictions[dset]["prediction"].append(pred)
         predictions[dset]["label"].append(lbl.numpy())
 # Postprocessing: concatenate tensors / arrays from all batches
 for dset in predictions:
+    predictions[dset]["imagenet_class"] = np.concatenate(predictions[dset]["imagenet_class"])
     predictions[dset]["prediction"] = np.concatenate(predictions[dset]["prediction"])
     predictions[dset]["label"] = np.concatenate(predictions[dset]["label"])
 # Check that all labels are the same across all datasets (i.e., that the same images were used)
