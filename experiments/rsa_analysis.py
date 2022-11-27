@@ -17,6 +17,7 @@ from loadnetworks import loadnetwork
 parser = argparse.ArgumentParser(description="Runs RSA to assess how much representations are driven by fore- and background.")
 parser.add_argument("--baseline", type=str, required=True, help="Image type to use as baseline for RSA (i.e., to compare other types to).")
 parser.add_argument("--comparisons", type=str, nargs="+", required=True, help="Image types to use as comparison cases for RSA.")
+parser.add_argument("--crop", action="store_true", help="Whether to restrict images / silhouettes to scaled bounding box.")
 parser.add_argument("--set", type=str, default="val", help="PascalVOC image set to use (e.g., 'val').")
 parser.add_argument("--network", type=str, default="resnet50", help="Network to extract activations from.")
 parser.add_argument("-l", "--layers", type=str, nargs="+", help="Names of layers to use for RSA.", default=["default"])
@@ -31,10 +32,10 @@ args = parser.parse_args()
 #################
 if args.verbose:
     print("Loading datasets ...")
-baseline_data, sinds, dinds = loaddataset(args.baseline, image_set=args.set)
+baseline_data, sinds, dinds = loaddataset(args.baseline, args.crop, image_set=args.set)
 datasets = {}
 for imgtype in args.comparisons:
-    datasets[imgtype], _, _ = loaddataset(imgtype, image_set=args.set, sinds=sinds, dinds=dinds)
+    datasets[imgtype], _, _ = loaddataset(imgtype, args.crop, image_set=args.set, sinds=sinds, dinds=dinds)
 all_datasets = args.comparisons + [args.baseline]
 
 baseline_loader = DataLoader(baseline_data, batch_size=args.batchsize)

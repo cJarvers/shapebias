@@ -19,12 +19,13 @@ parser.add_argument("-b", "--batchsize", type=int, default=4)
 parser.add_argument("--datasets", type=str, nargs="+", required=True, help="Datasets / image types to use as inputs.")
 parser.add_argument("--countclasses", action="store_true", help="Whether to print number of images per class.")
 parser.add_argument("--set", type=str, default="val", help="PascalVOC image set to use (e.g., 'val').")
+parser.add_argument("--crop", action="store_true", help="Whether to restrict images / silhouettes to scaled bounding box.")
 args = parser.parse_args()
 
 # Set up datasets
 datasets = {}
 for imgtype in args.datasets:
-    datasets[imgtype], sinds, dinds = loaddataset(imgtype, image_set=args.set)
+    datasets[imgtype], sinds, dinds = loaddataset(imgtype, args.crop, image_set=args.set)
 loaders = {imgtype: DataLoader(dset, batch_size=args.batchsize) for imgtype, dset in datasets.items()}
 
 if args.countclasses:

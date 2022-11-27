@@ -126,7 +126,7 @@ class SilhouetteDataset(Dataset):
 ############################################
 # Convenience function for loading dataset #
 ############################################
-def loaddataset(imgtype, **kwargs):
+def loaddataset(imgtype, crop, **kwargs):
     """
     Loads a silhouette datasets.
     
@@ -135,27 +135,31 @@ def loaddataset(imgtype, **kwargs):
         Possible values are:
     - All other arguments are passed on to SilhouetteDataset constructor
     """
-    if imgtype is None or imgtype == "image":
-        mapping = mappings.get_image
-    elif imgtype == "image_bbox":
-        mapping = mappings.get_image_bbox
-    elif imgtype == "fg":
-        mapping = mappings.get_image_fg
-    elif imgtype == "fg_bbox":
-        mapping = mappings.get_image_fg_bbox
-    elif imgtype == "bg":
-        mapping = mappings.get_image_bg
-    elif imgtype == "bg_bbox":
-        mapping = mappings.get_image_bg_bbox
-    elif imgtype == "silhouette" or imgtype == "silhouette_simple":
-        mapping = mappings.get_silhouette_simple
-    elif imgtype == "silhouette_bbox":
-        mapping = mappings.get_silhouette_bbox
-    elif imgtype == "silhouette_bbox_frankenstein":
-        mapping = mappings.get_silhouette_bbox_frankenstein
-    elif imgtype == "silhouette_bbox_serrated":
-        mapping = mappings.get_silhouette_bbox_serrated
+    if crop:
+        if imgtype == "image":
+            mapping = mappings.get_image_bbox
+        elif imgtype == "fg":
+            mapping = mappings.get_image_fg_bbox
+        elif imgtype == "bg":
+            mapping = mappings.get_image_bg_bbox
+        elif imgtype == "silhouette":
+            mapping = mappings.get_silhouette_bbox
+        elif imgtype == "silhouette_frankenstein" or imgtype=="frankenstein":
+            mapping = mappings.get_silhouette_bbox_frankenstein
+        elif imgtype == "silhouette_serrated" or imgtype=="serrated":
+            mapping = mappings.get_silhouette_bbox_serrated
+        else:
+            raise(ValueError(f"Unknown dataset / image type {imgtype}."))
     else:
-        raise(ValueError(f"Unknown dataset / image type {imgtype}."))
+        if imgtype is None or imgtype == "image":
+            mapping = mappings.get_image
+        elif imgtype == "fg":
+            mapping = mappings.get_image_fg
+        elif imgtype == "bg":
+            mapping = mappings.get_image_bg
+        elif imgtype == "silhouette" or imgtype == "silhouette_simple":
+            mapping = mappings.get_silhouette_simple
+        else:
+            raise(ValueError(f"Unknown dataset / image type {imgtype}."))
     data = SilhouetteDataset(mapping=mapping, **kwargs)
     return data, data.sinds, data.dinds
