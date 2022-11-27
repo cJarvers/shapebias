@@ -65,7 +65,7 @@ def swappatches(img, splits_per_dim):
 def frankenstein(img):
     "Flip lower half of image along vertical axis. Then flip right half of image along horizontal axis."
     ysize, xsize = img.shape[0], img.shape[1]
-    yhalf, xhalf = xsize // 2, ysize // 2
+    yhalf, xhalf = ysize // 2, xsize // 2
     img[yhalf:, :, :] = img[yhalf:, ::-1, :]
     img[:, xhalf:, :] = img[::-1, xhalf:, :]
     return img
