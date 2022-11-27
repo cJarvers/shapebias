@@ -16,14 +16,14 @@ vit_b_16_layers = [f"encoder.layers.encoder_layer_{i}.add_1" for i in range(12)]
 ##################################
 def loadnetwork(name, layers, pretrained=True):
     if name == "resnet50":
-        net = load_resnet50(layers, pretrained)
+        net, layers = load_resnet50(layers, pretrained)
     elif name == "vgg19":
-        net = load_vgg19(layers, pretrained)
+        net, layers = load_vgg19(layers, pretrained)
     elif name == "vit" or name == "vit_b_16":
-        net = load_vit(layers, pretrained)
+        net, layers = load_vit(layers, pretrained)
     else:
         raise(ValueError(f"Network {name} not implemented."))
-    return net
+    return net, layers
 
 def load_resnet50(layers, pretrained=True):
     if pretrained:
@@ -35,7 +35,7 @@ def load_resnet50(layers, pretrained=True):
         if layers == ["default"]:
             layers = resnet50_layers
         net = create_feature_extractor(net, return_nodes={layer: layer for layer in layers})
-    return net
+    return net, layers
 
 def load_vgg19(layers, pretrained=True):
     if pretrained:
@@ -47,7 +47,7 @@ def load_vgg19(layers, pretrained=True):
         if layers == ["default"]:
             layers = vgg19_layers
         net = create_feature_extractor(net, return_nodes={layer: layer for layer in layers})
-    return net
+    return net, layers
 
 def load_vit(layers, pretrained=True):
     if pretrained:
@@ -59,4 +59,4 @@ def load_vit(layers, pretrained=True):
         if layers == ["default"]:
             layers = vit_b_16_layers
         net = create_feature_extractor(net, return_nodes={layer: layer for layer in layers})
-    return net
+    return net, layers

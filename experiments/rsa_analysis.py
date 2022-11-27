@@ -19,7 +19,7 @@ parser.add_argument("--baseline", type=str, required=True, help="Image type to u
 parser.add_argument("--comparisons", type=str, nargs="+", required=True, help="Image types to use as comparison cases for RSA.")
 parser.add_argument("--set", type=str, default="val", help="PascalVOC image set to use (e.g., 'val').")
 parser.add_argument("--network", type=str, default="resnet50", help="Network to extract activations from.")
-parser.add_argument("-l", "--layers", type=str, nargs="+", help="Names of layers to use for RSA.", required=True)
+parser.add_argument("-l", "--layers", type=str, nargs="+", help="Names of layers to use for RSA.", default=["default"])
 parser.add_argument("-b", "--batchsize", type=int, default=32)
 parser.add_argument("--method", type=str, default="fixed", help="How to compare RDMs. Can be 'fixed' (no weighting, use rho-a) or 'weighted' (weighted models, use corr).")
 parser.add_argument("-v", "--verbose", action="store_true")
@@ -41,7 +41,7 @@ baseline_loader = DataLoader(baseline_data, batch_size=args.batchsize)
 loaders = {imgtype: DataLoader(dset, batch_size=args.batchsize) for imgtype, dset in datasets.items()}
 
 # Load network
-net = loadnetwork(args.network, args.layers) # TODO: add cmdline flag for whether weights should be pretrained
+net, args.layers = loadnetwork(args.network, args.layers) # TODO: add cmdline flag for whether weights should be pretrained
 
 ###################
 # Get activations #
