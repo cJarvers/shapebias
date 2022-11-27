@@ -37,7 +37,7 @@ if args.countclasses:
         print(c.ljust(20, " "), class_counts[c])
 
 # get network
-#net = loadnetwork("resnet50", layers=None)
+#net, _ = loadnetwork("resnet50", layers=None)
 
 # plot results
 fig, axs = plt.subplots(len(args.datasets), args.batchsize)

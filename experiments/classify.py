@@ -30,7 +30,7 @@ for imgtype in args.datasets:
 loaders = {imgtype: DataLoader(dset, batch_size=args.batchsize) for imgtype, dset in datasets.items()}
 
 # set up network
-net = loadnetwork(args.network, layers=None)
+net, _ = loadnetwork(args.network, layers=None)
 
 # get network predictions on dataset(s)
 predictions = {}
