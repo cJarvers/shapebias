@@ -1,6 +1,7 @@
 import torch
 from torchvision.models import resnet50, ResNet50_Weights, vgg19, VGG19_Weights, vit_b_16, ViT_B_16_Weights
 from torchvision.models.feature_extraction import create_feature_extractor
+import bagnets.pytorchnet
 
 ###########################
 # Standard layers to load #
@@ -24,9 +25,31 @@ def loadnetwork(name, layers, pretrained=True):
         net, layers = load_vit(layers, pretrained)
     elif name == "shape_resnet":
         net, layers = load_shaperesnet(layers, pretrained)
+    elif name == "bagnet17":
+        net, layers = load_bagnet(layers, pretrained)
     else:
         raise(ValueError(f"Network {name} not implemented."))
     return net, layers
+
+def load_bagnet(layers, pretrained=True):
+    net = bagnets.pytorchnet.bagnet17(pretrained=pretrained)
+    if layers is not None:
+        # tracing does not work on bagnet. Thus, create_feature_extractor throws an error.
+        # This manual workaround extracts activations of standard layers, even if it's a little hacky.
+        flat = torch.nn.Flatten()
+        def extractor(x):
+            x = net.relu(net.bn1(net.conv2(net.conv1(x))))
+            results = {}
+            results["layer1"] = net.layer1(x)
+            results["layer2"] = net.layer2(results["layer1"])
+            results["layer3"] = net.layer3(results["layer2"])
+            results["layer4"] = net.layer4(results["layer3"])
+            results["avgpool"] = torch.nn.AvgPool2d(results["layer4"].size()[2], stride=1)(results["layer4"])
+            results["fc"] = net.fc(flat(results["avgpool"]))
+            return results
+        return extractor, resnet50_layers
+    else:
+        return net, layers
 
 def load_resnet50(layers, pretrained=True):
     if pretrained:
