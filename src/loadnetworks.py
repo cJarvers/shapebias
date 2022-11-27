@@ -20,7 +20,7 @@ def loadnetwork(name, layers, pretrained=True):
     elif name == "vgg19":
         net = load_vgg19(layers, pretrained)
     elif name == "vit" or name == "vit_b_16":
-        net = load_vit
+        net = load_vit(layers, pretrained)
     else:
         raise(ValueError(f"Network {name} not implemented."))
     return net
