@@ -3,6 +3,7 @@
 # on ImageNet with 1000 classes, so the predictions have to be mapped
 # onto the 20 PascalVOC categories (and one "background" class).
 import argparse
+import datetime
 import numpy as np
 from matplotlib import pyplot as plt
 import torch
@@ -83,11 +84,16 @@ for dset in predictions:
     print(dset.ljust(30), f"{accuracies[dset]['acc']*100:1.3f}%")
 
 # plot results
-xs = np.array(range(1, len(args.datasets)+1))
+xs = np.arange(1, len(args.datasets)*2+1, 2)
 heights = np.array([accuracies[dset]["acc"] for dset in accuracies])
 pvals = np.array([accuracies[dset]["p-value"] for dset in accuracies])
 plt.bar(xs, height=heights)
-plt.boxplot([accuracies[dset]["perm_accs"] for dset in accuracies])
+plt.boxplot([accuracies[dset]["perm_accs"] for dset in accuracies], positions=xs+1)
 plt.scatter(xs[pvals < 0.05], heights[pvals < 0.05] + 0.1, marker="*")
 plt.gca().set_xticks(xs, args.datasets)
+plt.ylabel("accuracy")
+plt.title(f"Accuracy of {args.network}")
+# save figure to file
+time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+plt.savefig(f"../results/figures/{time}_classification_{args.network}.png")
 plt.show()

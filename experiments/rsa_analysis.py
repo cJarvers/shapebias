@@ -1,5 +1,6 @@
 # Performs RSA on representations of a network given sets of images.
 import argparse
+import datetime
 import numpy as np
 import matplotlib as mpl
 from matplotlib import pyplot as plt
@@ -25,6 +26,7 @@ parser.add_argument("-b", "--batchsize", type=int, default=32)
 parser.add_argument("--method", type=str, default="fixed", help="How to compare RDMs. Can be 'fixed' (no weighting, use rho-a) or 'weighted' (weighted models, use corr).")
 parser.add_argument("-v", "--verbose", action="store_true")
 parser.add_argument("--show_rdms", action="store_true", help="If true, shows plot of RDMs (and pauses script halfway).")
+parser.add_argument("--show_rsa", action="store_true", help="If true, shows plot of RSA (and pauses script).")
 parser.add_argument("-d", "--device", type=str, default="cuda")
 args = parser.parse_args()
 
@@ -168,6 +170,7 @@ if args.method == "fixed":
     }
     fitter = None # fixed models do not need fitting
     method = 'rho-a'
+    method_string = r'rank-correlation $(\rho_a)$'
 elif args.method == "weighted":
     # Weighted models - by reweighting features, comparison could be more selective to units that actually reflect shape.
     # We only use positive weights, so dimensions can be up- / down-scaled, but not inverted.
@@ -179,6 +182,7 @@ elif args.method == "weighted":
     }
     fitter = rsatoolbox.model.fitter.fit_optimize_positive
     method = 'corr' # Default "cosine" leads to results near 1 all the time. "corr" seems to be more informative
+    method_string = r'correlation $(\rho)$'
 
 # Do the actual comparisons:
 comparisons = {}
@@ -202,4 +206,10 @@ legend = [mpl.patches.Patch(color=mpl.color_sequences['tab10'][i], label=dset) f
 plt.bar(x=xs, height=heights, yerr=[lower_error, upper_error], color=colors)
 plt.xticks(xticks, labels=list(comparisons.keys()))
 plt.legend(handles=legend)
-plt.show()
+plt.title(f"Similarity to {args.baseline} representations in {args.network}")
+plt.ylabel(method_string)
+# save figure to file
+time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+plt.savefig(f"../results/figures/{time}_rsa_{args.baseline}_{args.network}_{args.method}.png")
+if args.show_rsa:
+    plt.show()
