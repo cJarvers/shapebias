@@ -9,7 +9,7 @@ import cornet
 ###########################
 # The following lists specify which layers are loaded by default if the
 # `layers` argument has value ["default"].
-cornet_layers = ["V1", "V2", "V3", "V4", "IT", "decoder"]
+cornet_layers = ["V1", "V2", "V4", "IT", "decoder"]
 resnet50_layers = ["layer1", "layer2", "layer3", "layer4", "avgpool", "fc"]
 vgg19_layers = ["features.3", "features.8", "features.18", "features.26", "features.35", "avgpool", "classifier.1", "classifier.4", "classifier.6"]
 vit_b_16_layers = [f"encoder.layers.encoder_layer_{i}.add_1" for i in range(12)] + ["heads.head"]
