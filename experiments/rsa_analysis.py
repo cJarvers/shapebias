@@ -25,6 +25,7 @@ parser.add_argument("-b", "--batchsize", type=int, default=32)
 parser.add_argument("--method", type=str, default="fixed", help="How to compare RDMs. Can be 'fixed' (no weighting, use rho-a) or 'weighted' (weighted models, use corr).")
 parser.add_argument("-v", "--verbose", action="store_true")
 parser.add_argument("--show_rdms", action="store_true", help="If true, shows plot of RDMs (and pauses script halfway).")
+parser.add_argument("-d", "--device", type=str, default="cuda")
 args = parser.parse_args()
 
 #################
@@ -42,7 +43,7 @@ baseline_loader = DataLoader(baseline_data, batch_size=args.batchsize)
 loaders = {imgtype: DataLoader(dset, batch_size=args.batchsize) for imgtype, dset in datasets.items()}
 
 # Load network
-net, args.layers = loadnetwork(args.network, args.layers) # TODO: add cmdline flag for whether weights should be pretrained
+net, args.layers = loadnetwork(args.network, args.layers, device=args.device) # TODO: add cmdline flag for whether weights should be pretrained
 
 ###################
 # Get activations #
@@ -64,16 +65,16 @@ for (img, lbl) in baseline_loader:
     classes.append(lbl.numpy())
     activations[args.baseline]["image"].append(flat(img).numpy())
     activations[args.baseline]["label"].append(torch.nn.functional.one_hot(lbl, num_classes=21).numpy())
-    outputs = net(img)
+    outputs = net(img.to(args.device))
     for layer, o in outputs.items():
-        activations[args.baseline][layer].append(flat(o).numpy())
+        activations[args.baseline][layer].append(flat(o).cpu().numpy())
 for dset, loader in loaders.items():
     for img, lbl in loader:
         activations[dset]["image"].append(flat(img).numpy())
         activations[dset]["label"].append(torch.nn.functional.one_hot(lbl, num_classes=21).numpy())
-        outputs = net(img)
+        outputs = net(img.to(args.device))
         for layer, o in outputs.items():
-            activations[dset][layer].append(flat(o).numpy())
+            activations[dset][layer].append(flat(o).cpu().numpy())
 
 # Postprocess activations
 for dset in all_datasets:

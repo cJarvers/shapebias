@@ -16,7 +16,7 @@ vit_b_16_layers = [f"encoder.layers.encoder_layer_{i}.add_1" for i in range(12)]
 ##################################
 # Functions for loading networks #
 ##################################
-def loadnetwork(name, layers, pretrained=True):
+def loadnetwork(name, layers, device="cpu", pretrained=True):
     if name == "resnet50":
         net, layers = load_resnet50(layers, pretrained)
     elif name == "vgg19":
@@ -26,13 +26,16 @@ def loadnetwork(name, layers, pretrained=True):
     elif name == "shape_resnet":
         net, layers = load_shaperesnet(layers, pretrained)
     elif name == "bagnet17":
-        net, layers = load_bagnet(layers, pretrained)
+        net, layers = load_bagnet(layers, pretrained, device=device)
     else:
         raise(ValueError(f"Network {name} not implemented."))
+    if not name == "bagnet17":
+        net = net.to(device)
     return net, layers
 
-def load_bagnet(layers, pretrained=True):
+def load_bagnet(layers, pretrained=True, device="cpu"):
     net = bagnets.pytorchnet.bagnet17(pretrained=pretrained)
+    net = net.to(device)
     if layers is not None:
         # tracing does not work on bagnet. Thus, create_feature_extractor throws an error.
         # This manual workaround extracts activations of standard layers, even if it's a little hacky.
