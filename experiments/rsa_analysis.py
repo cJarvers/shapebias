@@ -182,7 +182,7 @@ elif args.method == "weighted":
     }
     fitter = rsatoolbox.model.fitter.fit_optimize_positive
     method = 'corr' # Default "cosine" leads to results near 1 all the time. "corr" seems to be more informative
-    method_string = r'correlation $(\rho)$'
+    method_string = r'linear correlation $(r)$'
 
 # Do the actual comparisons:
 comparisons = {}
