@@ -2,12 +2,14 @@ import torch
 from torchvision.models import resnet50, ResNet50_Weights, vgg19, VGG19_Weights, vit_b_16, ViT_B_16_Weights
 from torchvision.models.feature_extraction import create_feature_extractor
 import bagnets.pytorchnet
+import cornet
 
 ###########################
 # Standard layers to load #
 ###########################
 # The following lists specify which layers are loaded by default if the
 # `layers` argument has value ["default"].
+cornet_layers = ["V1", "V2", "V3", "V4", "IT", "decoder"]
 resnet50_layers = ["layer1", "layer2", "layer3", "layer4", "avgpool", "fc"]
 vgg19_layers = ["features.3", "features.8", "features.18", "features.26", "features.35", "avgpool", "classifier.1", "classifier.4", "classifier.6"]
 vit_b_16_layers = [f"encoder.layers.encoder_layer_{i}.add_1" for i in range(12)] + ["heads.head"]
@@ -27,9 +29,11 @@ def loadnetwork(name, layers, device="cpu", pretrained=True):
         net, layers = load_shaperesnet(layers, pretrained)
     elif name == "bagnet17":
         net, layers = load_bagnet(layers, pretrained, device=device)
+    elif name == "cornet":
+        net, layers = load_cornet(layers, pretrained, device=device)
     else:
         raise(ValueError(f"Network {name} not implemented."))
-    if not name == "bagnet17":
+    if not (name == "bagnet17" or name == "cornet"):
         net = net.to(device)
     return net, layers
 
@@ -53,6 +57,23 @@ def load_bagnet(layers, pretrained=True, device="cpu"):
         return extractor, resnet50_layers
     else:
         return net, layers
+
+def load_cornet(layers, pretrained=True, device="cpu"):
+    net = cornet.cornet_s(pretrained=True, map_location=device)
+    net = net.module.to(device) # unwrap from DataParallel
+    if layers is not None:
+        # create_feature_extractor does not trace CORnet correctly -> workaround
+        def extractor(x):
+            results = {}
+            results["V1"] = net.V1(x)
+            results["V2"] = net.V2(results["V1"])
+            results["V4"] = net.V4(results["V2"])
+            results["IT"] = net.IT(results["V4"])
+            results["decoder"] = net.decoder(results["IT"])
+            return results
+        return extractor, cornet_layers
+    return net, layers
+
 
 def load_resnet50(layers, pretrained=True):
     if pretrained:

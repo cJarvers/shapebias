@@ -22,6 +22,7 @@ The following packages implement some of the networks that were evaluated. Insta
 
 ```
 pip install git+https://github.com/wielandbrendel/bag-of-local-features-models.git
+pip install git+https://github.com/dicarlolab/CORnet
 ```
 
 ## Usage
