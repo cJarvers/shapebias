@@ -203,7 +203,7 @@ lower_error = heights - np.concatenate([comparisons[layer].get_ci(0.95, test_typ
 upper_error = np.concatenate([comparisons[layer].get_ci(0.95, test_type="bootstrap")[1] for layer in comparison_layers]) - heights
 colorseq = [mpl.colors.to_rgb(mpl.colors.TABLEAU_COLORS[k]) for k in mpl.colors.TABLEAU_COLORS]
 colors = [colorseq[i] for _ in range(len(comparisons.keys())) for i in range(len(args.comparisons))]
-legend = [mpl.patches.Patch(color=mpl.color_sequences['tab10'][i], label=dset) for i, dset in enumerate(args.comparisons)]
+legend = [mpl.patches.Patch(color=colorseq[i], label=dset) for i, dset in enumerate(args.comparisons)]
 plt.bar(x=xs, height=heights, yerr=[lower_error, upper_error], color=colors)
 plt.xticks(xticks, labels=list(comparisons.keys()))
 plt.legend(handles=legend)
