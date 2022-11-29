@@ -13,6 +13,7 @@ import sys
 sys.path.insert(0, "../src")
 from datasets import loaddataset
 from loadnetworks import loadnetwork, netnamenice
+from fdr import fdrcorrection
 from helpers.imagenet_synsets import imagenet2voc
 
 # Parse command line
@@ -77,7 +78,7 @@ for dset in accuracies:
         predictions[dset]["label"],
         n = 10000
     )
-    accuracies[dset]["p-value"] = 1 - (accuracies[dset]["acc"] > accuracies[dset]["perm_accs"]).mean()
+    accuracies[dset]["p-value"] = ((accuracies[dset]["acc"] <= accuracies[dset]["perm_accs"]).sum() + 1) / len(accuracies[dset]["perm_accs"])
 
 # Print and plot results
 for dset in predictions:
@@ -87,7 +88,7 @@ for dset in predictions:
 xs = np.arange(1, len(args.datasets)*2+1, 2)
 heights = np.array([accuracies[dset]["acc"] for dset in accuracies])
 pvals = np.array([accuracies[dset]["p-value"] for dset in accuracies])
-significant = pvals < 0.05 / len(pvals) # Bonferroni correction
+significant = fdrcorrection(pvals, Q=0.05) # control false discovery rate
 plt.bar(xs, height=heights)
 #plt.boxplot([accuracies[dset]["perm_accs"] for dset in accuracies], positions=xs+1)
 plt.violinplot([accuracies[dset]["perm_accs"] for dset in accuracies], positions=xs+1, showmeans=True, widths=1.0)
@@ -95,6 +96,7 @@ plt.scatter(xs[significant], heights[significant] + 0.05, marker="*", c="black")
 plt.gca().set_xticks(xs+1, args.datasets)
 plt.ylabel("accuracy")
 plt.title(f"Accuracy of {netnamenice(args.network)}")
+plt.tight_layout()
 # save figure to file
 time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
 plt.savefig(f"../results/figures/{time}_classification_{args.network}.png")

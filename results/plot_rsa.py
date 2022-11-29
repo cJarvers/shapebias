@@ -6,6 +6,7 @@ import matplotlib as mpl
 import sys
 sys.path.insert(0, "../src")
 from loadnetworks import netnamenice, vgg19_nicenames, vit_nicenames
+from fdr import fdrcorrection
 
 parser = argparse.ArgumentParser(description="Read RSA results and plot similarities.")
 parser.add_argument("-f", "--filename", type=str, required=True, help="Path to file with RSA results")
@@ -43,7 +44,7 @@ heights = np.concatenate([comparisons[layer].get_means() for layer in comparison
 lower_error = heights - np.concatenate([comparisons[layer].get_ci(0.95, test_type="bootstrap")[0] for layer in comparison_layers])
 upper_error = np.concatenate([comparisons[layer].get_ci(0.95, test_type="bootstrap")[1] for layer in comparison_layers]) - heights
 pvals = np.concatenate([c.test_zero(test_type="bootstrap") for c in comparisons.values()])
-significant = pvals < 0.05 / len(pvals) # Bonferroni correction
+significant = fdrcorrection(pvals, Q=0.05) # control FDR
 colorseq = [mpl.colors.to_rgb(mpl.colors.TABLEAU_COLORS[k]) for k in mpl.colors.TABLEAU_COLORS]
 colors = [colorseq[i] for _ in range(len(comparisons.keys())) for i in range(len(args.comparisons))]
 legend = [mpl.patches.Patch(color=colorseq[i], label=dset) for i, dset in enumerate(args.comparisons)]
@@ -53,6 +54,7 @@ plt.xticks(xticks, labels=layernames, rotation=cmdargs.labelrotation)
 plt.legend(handles=legend)
 plt.title(f"Similarity to {args.baseline} representations in {netnamenice(args.network)}")
 plt.ylabel(method_string)
+plt.tight_layout()
 # save figure to file
 plt.savefig(cmdargs.output)
 if cmdargs.show:
