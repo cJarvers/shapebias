@@ -13,7 +13,7 @@ torch.set_grad_enabled(False)
 import sys
 sys.path.insert(0, "../src")
 from datasets import loaddataset
-from loadnetworks import loadnetwork
+from loadnetworks import loadnetwork, netnamenice
 
 parser = argparse.ArgumentParser(description="Runs RSA to assess how much representations are driven by fore- and background.")
 parser.add_argument("--baseline", type=str, required=True, help="Image type to use as baseline for RSA (i.e., to compare other types to).")
@@ -210,13 +210,16 @@ xticks = [i*len(all_datasets)+0.5+len(args.comparisons)/2 for i in range(len(com
 heights = np.concatenate([comparisons[layer].get_means() for layer in comparison_layers])
 lower_error = heights - np.concatenate([comparisons[layer].get_ci(0.95, test_type="bootstrap")[0] for layer in comparison_layers])
 upper_error = np.concatenate([comparisons[layer].get_ci(0.95, test_type="bootstrap")[1] for layer in comparison_layers]) - heights
+pvals = np.concatenate([c.test_zero(test_type="bootstrap") for c in comparisons.values()])
+significant = pvals < 0.05 / len(pvals) # Bonferroni correction
 colorseq = [mpl.colors.to_rgb(mpl.colors.TABLEAU_COLORS[k]) for k in mpl.colors.TABLEAU_COLORS]
 colors = [colorseq[i] for _ in range(len(comparisons.keys())) for i in range(len(args.comparisons))]
 legend = [mpl.patches.Patch(color=colorseq[i], label=dset) for i, dset in enumerate(args.comparisons)]
 plt.bar(x=xs, height=heights, yerr=[lower_error, upper_error], color=colors)
+plt.scatter(x=xs[significant], y=heights[significant]+0.1, marker="*", color="black")
 plt.xticks(xticks, labels=list(comparisons.keys()))
 plt.legend(handles=legend)
-plt.title(f"Similarity to {args.baseline} representations in {args.network}")
+plt.title(f"Similarity to {args.baseline} representations in {netnamenice(args.network)}")
 plt.ylabel(method_string)
 # save figure to file
 plt.savefig(f"../results/figures/{time}_rsa_{args.baseline}_{args.network}_{args.method}.png")

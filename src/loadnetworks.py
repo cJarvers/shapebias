@@ -12,7 +12,9 @@ import cornet
 cornet_layers = ["V1", "V2", "V4", "IT", "decoder"]
 resnet50_layers = ["layer1", "layer2", "layer3", "layer4", "avgpool", "fc"]
 vgg19_layers = ["features.3", "features.8", "features.18", "features.26", "features.35", "avgpool", "classifier.1", "classifier.4", "classifier.6"]
+vgg19_nicenames = ["conv2", "conv4", "conv8", "conv12", "conv16", "avgpool", "fc1", "fc2", "fc3"]
 vit_b_16_layers = [f"encoder.layers.encoder_layer_{i}.add_1" for i in range(12)] + ["heads.head"]
+vit_nicenames = [f"encoder{i}" for i in range(12)] + ["head"]
 
 
 ##################################
@@ -124,3 +126,23 @@ def load_vit(layers, pretrained=True):
             layers = vit_b_16_layers
         net = create_feature_extractor(net, return_nodes={layer: layer for layer in layers})
     return net, layers
+
+
+########################################################
+# Helper for nice printing of network names in figures #
+########################################################
+def netnamenice(name):
+    if name == "resnet50":
+        return "ResNet-50"
+    elif name == "vgg19":
+        return "VGG-19"
+    elif name == "vit" or name == "vit_b_16":
+        return "ViT"
+    elif name == "shape_resnet":
+        return "Shape-ResNet"
+    elif name == "bagnet17":
+        return "BagNet-17"
+    elif name == "cornet":
+        return "CORnet-S"
+    else:
+        raise(ValueError(f"Network {name} not implemented."))
