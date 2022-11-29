@@ -80,24 +80,14 @@ for dset in accuracies:
     )
     accuracies[dset]["p-value"] = ((accuracies[dset]["acc"] <= accuracies[dset]["perm_accs"]).sum() + 1) / len(accuracies[dset]["perm_accs"])
 
-# Print and plot results
+# save to file
+time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+save_data = {
+    "commandline": args,
+    "accuracies": accuracies
+}
+torch.save(save_data, f"../results/accuracy/{time}_classification_{args.network}.pt")
+
+# Print results
 for dset in predictions:
     print(dset.ljust(30), f"{accuracies[dset]['acc']*100:1.3f}%")
-
-# plot results
-xs = np.arange(1, len(args.datasets)*2+1, 2)
-heights = np.array([accuracies[dset]["acc"] for dset in accuracies])
-pvals = np.array([accuracies[dset]["p-value"] for dset in accuracies])
-significant = fdrcorrection(pvals, Q=0.05) # control false discovery rate
-plt.bar(xs, height=heights)
-#plt.boxplot([accuracies[dset]["perm_accs"] for dset in accuracies], positions=xs+1)
-plt.violinplot([accuracies[dset]["perm_accs"] for dset in accuracies], positions=xs+1, showmeans=True, widths=1.0)
-plt.scatter(xs[significant], heights[significant] + 0.05, marker="*", c="black")
-plt.gca().set_xticks(xs+0.5, args.datasets)
-plt.ylabel("accuracy")
-plt.title(f"Accuracy of {netnamenice(args.network)}")
-plt.tight_layout()
-# save figure to file
-time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
-plt.savefig(f"../results/figures/{time}_classification_{args.network}.png")
-plt.show()

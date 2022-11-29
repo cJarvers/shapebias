@@ -202,28 +202,3 @@ save_data = {
 }
 time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
 torch.save(save_data, f"../results/rsa/{time}_rsa_{args.baseline}_{args.network}_{args.method}.pt")
-
-if args.verbose:
-    print("    ... plotting results")
-# Plot all comparison results in custom bar plot
-xs = [i*(len(all_datasets))+j+1 for i in range(len(comparison_layers)) for j in range(len(args.comparisons))]
-xticks = [i*len(all_datasets)+0.5+len(args.comparisons)/2 for i in range(len(comparison_layers))]
-heights = np.concatenate([comparisons[layer].get_means() for layer in comparison_layers])
-lower_error = heights - np.concatenate([comparisons[layer].get_ci(0.95, test_type="bootstrap")[0] for layer in comparison_layers])
-upper_error = np.concatenate([comparisons[layer].get_ci(0.95, test_type="bootstrap")[1] for layer in comparison_layers]) - heights
-pvals = np.concatenate([c.test_zero(test_type="bootstrap") for c in comparisons.values()])
-significant = fdrcorrection(pvals, Q=0.05) # control false discovery rate
-colorseq = [mpl.colors.to_rgb(mpl.colors.TABLEAU_COLORS[k]) for k in mpl.colors.TABLEAU_COLORS]
-colors = [colorseq[i] for _ in range(len(comparisons.keys())) for i in range(len(args.comparisons))]
-legend = [mpl.patches.Patch(color=colorseq[i], label=dset) for i, dset in enumerate(args.comparisons)]
-plt.bar(x=xs, height=heights, yerr=[lower_error, upper_error], color=colors)
-plt.scatter(x=xs[significant], y=heights[significant]+0.1, marker="*", color="black")
-plt.xticks(xticks, labels=list(comparisons.keys()))
-plt.legend(handles=legend)
-plt.title(f"Similarity to {args.baseline} representations in {netnamenice(args.network)}")
-plt.ylabel(method_string)
-plt.tight_layout()
-# save figure to file
-plt.savefig(f"../results/figures/{time}_rsa_{args.baseline}_{args.network}_{args.method}.png")
-if args.show_rsa:
-    plt.show()
