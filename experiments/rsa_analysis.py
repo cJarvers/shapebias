@@ -193,6 +193,14 @@ for layer in comparison_layers:
         k_rdm=1, # boot_type="pattern" # seems to lead to an error unless also used with k_rdm=1 / when used with fixed models
     )
 
+# save results to file
+save_data = {
+    "comparisons": comparisons,
+    "commandline": args
+}
+time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+torch.save(save_data, f"../results/rsa/{time}_rsa_{args.baseline}_{args.network}_{args.method}.pt")
+
 if args.verbose:
     print("    ... plotting results")
 # Plot all comparison results in custom bar plot
@@ -210,7 +218,6 @@ plt.legend(handles=legend)
 plt.title(f"Similarity to {args.baseline} representations in {args.network}")
 plt.ylabel(method_string)
 # save figure to file
-time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
 plt.savefig(f"../results/figures/{time}_rsa_{args.baseline}_{args.network}_{args.method}.png")
 if args.show_rsa:
     plt.show()
