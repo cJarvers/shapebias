@@ -168,9 +168,11 @@ if args.method == "fixed":
             rsatoolbox.model.ModelFixed(dset, rdms[dset][layer]) for dset in args.comparisons
         ] for layer in comparison_layers
     }
-    fitter = None # fixed models do not need fitting
     method = 'rho-a'
     method_string = r'rank-correlation $(\rho_a)$'
+    eval_fun = lambda models, data: rsatoolbox.inference.eval_bootstrap_pattern(
+        models=models, data=data, method=method
+    )
 elif args.method == "weighted":
     # Weighted models - by reweighting features, comparison could be more selective to units that actually reflect shape.
     # We only use positive weights, so dimensions can be up- / down-scaled, but not inverted.
@@ -183,15 +185,14 @@ elif args.method == "weighted":
     fitter = rsatoolbox.model.fitter.fit_optimize_positive
     method = 'corr' # Default "cosine" leads to results near 1 all the time. "corr" seems to be more informative
     method_string = r'linear correlation $(r)$'
+    eval_fun = lambda models, data: rsatoolbox.inference.bootstrap_crossval(
+        models=models, data=data, method=method, fitter=fitter, k_rdm=1, boot_type="pattern"
+    )
 
 # Do the actual comparisons:
 comparisons = {}
 for layer in comparison_layers:
-    comparisons[layer] = rsatoolbox.inference.bootstrap_crossval(
-        models=models[layer], data=rdms[args.baseline][layer],
-        method=method, fitter=fitter,
-        k_rdm=1, # boot_type="pattern" # seems to lead to an error unless also used with k_rdm=1 / when used with fixed models
-    )
+    comparisons[layer] = eval_fun(models[layer], rdms[args.baseline][layer])
 
 # save results to file
 save_data = {
