@@ -13,6 +13,7 @@ parser.add_argument("-f", "--filename", type=str, required=True, help="Path to f
 parser.add_argument("-o", "--output", type=str, required=True, help="Path to file to save figure in.")
 parser.add_argument("--show", action="store_true", help="Whether to show resulting figure.")
 parser.add_argument("--labelrotation", type=int, help="Rotate xtick labels in plot", default=0)
+parser.add_argument("--fdr", type=float, default=0.05, help="Value at which to control false discovery rate.")
 cmdargs = parser.parse_args()
 
 # load RSA results
@@ -44,7 +45,7 @@ heights = np.concatenate([comparisons[layer].get_means() for layer in comparison
 lower_error = heights - np.concatenate([comparisons[layer].get_ci(0.95, test_type="bootstrap")[0] for layer in comparison_layers])
 upper_error = np.concatenate([comparisons[layer].get_ci(0.95, test_type="bootstrap")[1] for layer in comparison_layers]) - heights
 pvals = np.concatenate([c.test_zero(test_type="bootstrap") for c in comparisons.values()])
-significant = fdrcorrection(pvals, Q=0.05) # control FDR
+significant = fdrcorrection(pvals, Q=cmdargs.fdr) # control FDR
 colorseq = [mpl.colors.to_rgb(mpl.colors.TABLEAU_COLORS[k]) for k in mpl.colors.TABLEAU_COLORS]
 colors = [colorseq[i] for _ in range(len(comparisons.keys())) for i in range(len(args.comparisons))]
 legend = [mpl.patches.Patch(color=colorseq[i], label=dset) for i, dset in enumerate(args.comparisons)]
