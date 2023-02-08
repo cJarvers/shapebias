@@ -1,6 +1,6 @@
 # Defines mapping / extraction functions to be used with SilhouetteDataset class.
 import numpy as np
-from scipy.ndimage import binary_dilation, gaussian_filter
+from scipy.ndimage import binary_dilation, gaussian_filter, center_of_mass
 
 ##############################
 # Helper functions / objects #
@@ -63,6 +63,27 @@ def swappatches(img, splits_per_dim):
     pass
 
 def frankenstein(img):
+    "Flip lower half of image along vertical axis. Then re-align to reduce artifacts."
+    # find center of mass along y dimension; this is where we split the image and flip
+    ymid, _, _ = center_of_mass(img) # this only works with silhouettes, not original images
+    ymid = round(ymid)
+    # find the borders of the object in the last row above the swap, so that they can be
+    # re-aligned later
+    object_indices = np.argwhere(img[ymid-1, :, 0])
+    first = object_indices.min()
+    last = object_indices.max()
+    shift = first - (img.shape[1] - last)
+    # flip lower half and re-align
+    img[ymid:, :, :] = img[ymid:, ::-1, :] # flip
+    if shift > 0: # shift right
+        img[ymid:, shift:, :] = img[ymid:, :-shift, :]
+        img[ymid:, :shift, :] = 0 # fill undefined area with 0
+    else: # shift left
+        img[ymid:, :shift, :] = img[ymid:, -shift:, :]
+        img[ymid:, shift:, :] = 0 # fill undefined area with 0
+    return img
+
+def double_flip(img):
     "Flip lower half of image along vertical axis. Then flip right half of image along horizontal axis."
     ysize, xsize = img.shape[0], img.shape[1]
     yhalf, xhalf = ysize // 2, xsize // 2
@@ -163,8 +184,8 @@ def get_silhouette_bbox_frankenstein(img, seg, ann, factor=1.2, splits_per_dim=2
     target = gettarget(obj)
     xmin, xmax, ymin, ymax = getbbox(obj, ann['annotation']['size'], factor)
     mask = getmask(seg[ymin:ymax, xmin:xmax], target)
-    silhouette = (1 - mask) * 255
-    silhouette = frankenstein(silhouette)
+    silhouette = frankenstein(mask)
+    silhouette = (1 - silhouette) * 255
     return silhouette, target
 
 def get_silhouette_bbox_serrated(img, seg, ann, factor=1.2, borderwidth=5, sigma=2.0):
