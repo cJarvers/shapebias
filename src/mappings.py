@@ -78,9 +78,11 @@ def frankenstein(img):
     if shift > 0: # shift right
         img[ymid:, shift:, :] = img[ymid:, :-shift, :]
         img[ymid:, :shift, :] = 0 # fill undefined area with 0
-    else: # shift left
+    elif shift < 0: # shift left
         img[ymid:, :shift, :] = img[ymid:, -shift:, :]
         img[ymid:, shift:, :] = 0 # fill undefined area with 0
+    else: # for shift == 0, do nothing
+        pass
     return img
 
 def double_flip(img):
