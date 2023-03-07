@@ -20,7 +20,7 @@ from helpers.imagenet_synsets import imagenet2voc
 parser = argparse.ArgumentParser(description="Test for classification performance on modified datasets.")
 parser.add_argument("--datasets", type=str, nargs="+", required=True, help="Datasets / image types to use as inputs.")
 parser.add_argument("--network", type=str, default="resnet50", help="Network to extract activations from.")
-parser.add_argument("--set", type=str, default="val", help="PascalVOC image set to use (e.g., 'val').")
+parser.add_argument("--set", type=str, default="trainval", help="PascalVOC image set to use (e.g., 'val').")
 parser.add_argument("--crop", action="store_true", help="Whether to restrict images / silhouettes to scaled bounding box.")
 parser.add_argument("-b", "--batchsize", type=int, default=32)
 args = parser.parse_args()

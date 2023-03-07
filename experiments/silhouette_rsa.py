@@ -26,7 +26,7 @@ if args.crop:
 else:
     mapping = get_silhouette_simple
 
-silhouettes = SilhouetteDataset("../data", image_set="val",
+silhouettes = SilhouetteDataset("../data", image_set="trainval",
     filters=["single", "occluded", "truncated"],
     mapping=mapping,
     transform=Compose([
