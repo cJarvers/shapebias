@@ -1,5 +1,6 @@
 import torch
-from torchvision.models import resnet50, ResNet50_Weights, vgg19, VGG19_Weights, vit_b_16, ViT_B_16_Weights
+from torchvision.models import resnet50, ResNet50_Weights, resnet101, ResNet101_Weights
+from torchvision.models import vgg19, VGG19_Weights, vit_b_16, ViT_B_16_Weights
 from torchvision.models import alexnet, AlexNet_Weights, googlenet, GoogLeNet_Weights
 from torchvision.models.feature_extraction import create_feature_extractor
 import bagnets.pytorchnet
@@ -12,6 +13,7 @@ import cornet
 # `layers` argument has value ["default"].
 alexnet_layers = ["features.1", "features.4", "features.7", "features.9", "features.11", "avgpool", "classifier.2", "classifier.5", "classifier.6"]
 alexnet_nicenames = ["conv1", "conv2", "conv3", "conv4", "conv5", "avgpool", "fc1", "fc2", "fc3"]
+googlenet_layers = ["maxpool1", "maxpool2", "maxpool3", "maxpool4", "avgpool", "fc"]
 cornet_layers = ["V1", "V2", "V4", "IT", "decoder"]
 resnet50_layers = ["layer1", "layer2", "layer3", "layer4", "avgpool", "fc"]
 vgg19_layers = ["features.3", "features.8", "features.18", "features.26", "features.35", "avgpool", "classifier.1", "classifier.4", "classifier.6"]
@@ -26,8 +28,12 @@ vit_nicenames = [f"encoder{i}" for i in range(12)] + ["head"]
 def loadnetwork(name, layers, device="cpu", pretrained=True):
     if name == "resnet50":
         net, layers = load_resnet50(layers, pretrained)
+    elif name == "resnet101":
+        net, layers = load_resnet101(layers, pretrained)
     elif name == "alexnet":
         net, layers = load_alexnet(layers, pretrained)
+    elif name == "googlenet":
+        net, layers = load_googlenet(layers, pretrained)
     elif name == "vgg19":
         net, layers = load_vgg19(layers, pretrained)
     elif name == "vit" or name == "vit_b_16":
@@ -93,6 +99,17 @@ def load_cornet(layers, pretrained=True, device="cpu"):
         return extractor, cornet_layers
     return net, layers
 
+def load_googlenet(layers, pretrained=True):
+    if pretrained:
+        weights = GoogLeNet_Weights.IMAGENET1K_V1
+    else:
+        weights = None
+    net = googlenet(weights=weights)
+    if layers is not None:
+        if layers == ["default"]:
+            layers = googlenet_layers
+        net = create_feature_extractor(net, return_nodes={layer: layer for layer in layers})
+    return net, layers
 
 def load_resnet50(layers, pretrained=True):
     if pretrained:
@@ -103,6 +120,18 @@ def load_resnet50(layers, pretrained=True):
     if layers is not None:
         if layers == ["default"]:
             layers = resnet50_layers
+        net = create_feature_extractor(net, return_nodes={layer: layer for layer in layers})
+    return net, layers
+
+def load_resnet101(layers, pretrained=True):
+    if pretrained:
+        weights = ResNet101_Weights.IMAGENET1K_V2
+    else:
+        weights = None
+    net = resnet101(weights=weights)
+    if layers is not None:
+        if layers == ["default"]:
+            layers = resnet50_layers # same layer names apply
         net = create_feature_extractor(net, return_nodes={layer: layer for layer in layers})
     return net, layers
 
@@ -151,8 +180,12 @@ def load_vit(layers, pretrained=True):
 def netnamenice(name):
     if name == "resnet50":
         return "ResNet-50"
+    elif name == "resnet101":
+        return "ResNet-101"
     elif name == "alexnet":
         return "AlexNet"
+    elif name == "googlenet":
+        return "GoogLeNet"
     elif name == "vgg19":
         return "VGG-19"
     elif name == "vit" or name == "vit_b_16":
