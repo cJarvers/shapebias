@@ -10,7 +10,8 @@ import cornet
 ###########################
 # The following lists specify which layers are loaded by default if the
 # `layers` argument has value ["default"].
-alexnet_layers = ["featuers.2", "features.5", "features.8", "features.12", "avgpool", "classifier.1", "classifier.4", "classifier.6"]
+alexnet_layers = ["features.1", "features.4", "features.7", "features.9", "features.11", "avgpool", "classifier.2", "classifier.5", "classifier.6"]
+alexnet_nicenames = ["conv1", "conv2", "conv3", "conv4", "conv5", "avgpool", "fc1", "fc2", "fc3"]
 cornet_layers = ["V1", "V2", "V4", "IT", "decoder"]
 resnet50_layers = ["layer1", "layer2", "layer3", "layer4", "avgpool", "fc"]
 vgg19_layers = ["features.3", "features.8", "features.18", "features.26", "features.35", "avgpool", "classifier.1", "classifier.4", "classifier.6"]
@@ -77,7 +78,7 @@ def load_bagnet(layers, pretrained=True, device="cpu"):
         return net, layers
 
 def load_cornet(layers, pretrained=True, device="cpu"):
-    net = cornet.cornet_s(pretrained=True, map_location=device)
+    net = cornet.cornet_s(pretrained=pretrained, map_location=device)
     net = net.module.to(device) # unwrap from DataParallel
     if layers is not None:
         # create_feature_extractor does not trace CORnet correctly -> workaround

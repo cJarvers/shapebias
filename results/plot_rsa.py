@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 import matplotlib as mpl
 import sys
 sys.path.insert(0, "../src")
-from loadnetworks import netnamenice, vgg19_nicenames, vit_nicenames
+from loadnetworks import netnamenice, vgg19_nicenames, vit_nicenames, alexnet_nicenames
 from fdr import fdrcorrection
 
 parser = argparse.ArgumentParser(description="Read RSA results and plot similarities.")
@@ -35,6 +35,8 @@ if args.network == "vgg19":
     layernames = ["image"] + vgg19_nicenames
 elif args.network == "vit":
     layernames = ["image"] + vit_nicenames
+elif args.network == "alexnet":
+    layernames = ["image"] + alexnet_nicenames
 else:
     layernames = list(comparisons.keys())
 
