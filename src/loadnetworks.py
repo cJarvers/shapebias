@@ -1,5 +1,6 @@
 import torch
 from torchvision.models import resnet50, ResNet50_Weights, vgg19, VGG19_Weights, vit_b_16, ViT_B_16_Weights
+from torchvision.models import alexnet, AlexNet_Weights, googlenet, GoogLeNet_Weights
 from torchvision.models.feature_extraction import create_feature_extractor
 import bagnets.pytorchnet
 import cornet
@@ -9,6 +10,7 @@ import cornet
 ###########################
 # The following lists specify which layers are loaded by default if the
 # `layers` argument has value ["default"].
+alexnet_layers = ["featuers.2", "features.5", "features.8", "features.12", "avgpool", "classifier.1", "classifier.4", "classifier.6"]
 cornet_layers = ["V1", "V2", "V4", "IT", "decoder"]
 resnet50_layers = ["layer1", "layer2", "layer3", "layer4", "avgpool", "fc"]
 vgg19_layers = ["features.3", "features.8", "features.18", "features.26", "features.35", "avgpool", "classifier.1", "classifier.4", "classifier.6"]
@@ -23,6 +25,8 @@ vit_nicenames = [f"encoder{i}" for i in range(12)] + ["head"]
 def loadnetwork(name, layers, device="cpu", pretrained=True):
     if name == "resnet50":
         net, layers = load_resnet50(layers, pretrained)
+    elif name == "alexnet":
+        net, layers = load_alexnet(layers, pretrained)
     elif name == "vgg19":
         net, layers = load_vgg19(layers, pretrained)
     elif name == "vit" or name == "vit_b_16":
@@ -37,6 +41,18 @@ def loadnetwork(name, layers, device="cpu", pretrained=True):
         raise(ValueError(f"Network {name} not implemented."))
     if not (name == "bagnet17" or name == "cornet"):
         net = net.to(device)
+    return net, layers
+
+def load_alexnet(layers, pretrained=True):
+    if pretrained:
+        weights = AlexNet_Weights.IMAGENET1K_V1
+    else:
+        weights = None
+    net = alexnet(weights=weights)
+    if layers is not None:
+        if layers == ["default"]:
+            layers = alexnet_layers
+        net = create_feature_extractor(net, return_nodes={layer: layer for layer in layers})
     return net, layers
 
 def load_bagnet(layers, pretrained=True, device="cpu"):
@@ -134,6 +150,8 @@ def load_vit(layers, pretrained=True):
 def netnamenice(name):
     if name == "resnet50":
         return "ResNet-50"
+    elif name == "alexnet":
+        return "AlexNet"
     elif name == "vgg19":
         return "VGG-19"
     elif name == "vit" or name == "vit_b_16":
