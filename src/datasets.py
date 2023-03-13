@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 from torchvision import datasets
-from torchvision.transforms import ToTensor, Resize, Compose, ConvertImageDtype
+from torchvision.transforms import ToTensor, Resize, Compose, ConvertImageDtype, Normalize
 from torchvision.transforms import InterpolationMode
 import mappings
 
@@ -148,6 +148,10 @@ def loaddataset(imgtype, crop, **kwargs):
             mapping = mappings.get_silhouette_bbox_frankenstein
         elif imgtype == "silhouette_serrated" or imgtype=="serrated":
             mapping = mappings.get_silhouette_bbox_serrated
+        elif imgtype == "silhouette_serrated_coarse" or imgtype == "serrated_coarse":
+            mapping = lambda img, seg, ann: mappings.get_silhouette_bbox_serrated(img, seg, ann, sigma=5.0)
+        elif imgtype == "silhouette_serrated_blur" or imgtype == "serrated_blur":
+            mapping = mappings.get_silhouette_bbox_serrated_blurred
         else:
             raise(ValueError(f"Unknown dataset / image type {imgtype}."))
     else:
