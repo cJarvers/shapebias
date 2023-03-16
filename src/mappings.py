@@ -204,6 +204,11 @@ def get_silhouette_bbox_serrated(img, seg, ann, factor=1.2, borderwidth=5, sigma
     result = (1 - mask) * (1 - border) + noise_border
     return result.astype(np.uint8) * 255, target
 
+def get_silhouette_bbox_serrated_blurred(img, seg, ann, factor=1.2, blur=3.0):
+    silhouette, target = get_silhouette_bbox_serrated(img, seg, ann, factor=factor)
+    silhouette = gaussian_filter(silhouette, sigma=blur)
+    return silhouette, target
+
 
 
 
