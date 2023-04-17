@@ -40,6 +40,14 @@ elif args.network == "alexnet":
 else:
     layernames = list(comparisons.keys())
 
+# settings for plotting
+plt.rcParams.update({
+    'font.size': 15,
+    'figure.figsize': (8, 5),
+    'axes.spines.right': False,
+    'axes.spines.top': False
+})
+
 # Plot all comparison results in custom bar plot
 xs = np.array([i*(len(all_datasets))+j+1 for i in range(len(comparison_layers)) for j in range(len(args.comparisons))])
 xticks = [i*len(all_datasets)+0.5+len(args.comparisons)/2 for i in range(len(comparison_layers))]
@@ -54,7 +62,8 @@ legend = [mpl.patches.Patch(color=colorseq[i], label=dset) for i, dset in enumer
 plt.bar(x=xs, height=heights, yerr=[lower_error, upper_error], color=colors)
 plt.scatter(x=xs[significant], y=heights[significant]+0.1, marker="*", color="black")
 plt.xticks(xticks, labels=layernames, rotation=cmdargs.labelrotation)
-plt.legend(handles=legend)
+plt.ylim(top=1.0, bottom=-0.25)
+plt.legend(handles=legend, loc="upper left")
 plt.title(f"Similarity to {args.baseline} representations in {netnamenice(args.network)}")
 plt.ylabel(method_string)
 plt.tight_layout()

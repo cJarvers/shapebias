@@ -21,6 +21,14 @@ accuracies = saved_state["accuracies"]
 # recover parameters of RSA run that are needed for plotting
 args = saved_state["commandline"]
 
+# settings for plotting
+plt.rcParams.update({
+    'font.size': 15,
+    'figure.figsize': (8, 5),
+    'axes.spines.right': False,
+    'axes.spines.top': False
+})
+
 # plot results
 xs = np.arange(1, len(args.datasets)*2+1, 2)
 heights = np.array([accuracies[dset]["acc"] for dset in accuracies])
@@ -32,6 +40,7 @@ plt.violinplot([accuracies[dset]["perm_accs"] for dset in accuracies], positions
 plt.scatter(xs[significant], heights[significant] + 0.05, marker="*", c="black")
 plt.gca().set_xticks(xs+0.5, args.datasets)
 plt.ylabel("accuracy")
+plt.ylim(top=0.75, bottom=0.0)
 plt.title(f"Accuracy of {netnamenice(args.network)}")
 plt.tight_layout()
 # save figure to file
